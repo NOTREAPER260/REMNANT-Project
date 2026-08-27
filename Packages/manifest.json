@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.cqf.urpvolumetricfog": "https://github.com/CristianQiu/Unity-URP-Volumetric-Light.git",
     "com.unity.ai.assistant": "2.18.0-pre.2",
     "com.unity.ai.navigation": "2.0.11",
     "com.unity.cinemachine": "3.1.6",
