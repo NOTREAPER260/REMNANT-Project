@@ -108,4 +108,58 @@ public static class PickupSystemMenu
         EditorGUIUtility.PingObject(host);
         Debug.Log("[Pickup System] Interactor added to '" + host.name + "'. Save the scene to keep it.", host);
     }
+
+    [MenuItem("Tools/Pickup System/Make Selected Doors", false, 30)]
+    private static void MakeSelectedDoors()
+    {
+        GameObject[] selection = Selection.gameObjects;
+        int changed = 0;
+
+        Undo.IncrementCurrentGroup();
+        Undo.SetCurrentGroupName("Make Doors");
+
+        for (int i = 0; i < selection.Length; i++)
+        {
+            GameObject go = selection[i];
+
+            if (go.GetComponentInChildren<Renderer>() == null)
+            {
+                Debug.LogWarning("[Pickup System] '" + go.name +
+                                 "' has no Renderer, so it is probably not a door leaf. Skipped.", go);
+                continue;
+            }
+
+            // The aim ray has to hit the leaf itself.
+            if (go.GetComponentInChildren<Collider>() == null)
+            {
+                Undo.AddComponent<BoxCollider>(go);
+            }
+
+            if (go.GetComponent<Door>() == null)
+            {
+                Door door = Undo.AddComponent<Door>(go);
+
+                SerializedObject so = new SerializedObject(door);
+                so.FindProperty("displayName").stringValue = "DOOR";
+                so.ApplyModifiedProperties();
+            }
+
+            changed++;
+        }
+
+        Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+
+        if (changed > 0)
+        {
+            Debug.Log("[Pickup System] " + changed + " door(s) are now openable. " +
+                      "Check that each door's pivot sits on its hinge edge, then save the scene.");
+        }
+    }
+
+    [MenuItem("Tools/Pickup System/Make Selected Doors", true)]
+    private static bool MakeSelectedDoorsValidate()
+    {
+        return Selection.gameObjects.Length > 0;
+    }
+
 }

@@ -12,6 +12,8 @@
 | ဖိုင် | ဘယ်မှာ တင်ရမလဲ | ဘယ်နှစ်ခု |
 |---|---|---|
 | `Pickup.cs` | **ကောက်ချင်တဲ့ object တိုင်း** ပေါ်မှာ | ပစ္စည်းတစ်ခုလျှင် တစ်ခု |
+| `Door.cs` | **ဖွင့်ချင်တဲ့ တံခါးတိုင်း** ပေါ်မှာ | တံခါးတစ်ချပ်လျှင် တစ်ခု |
+| `IInteractable.cs` | **ဘယ်မှာမှ မတင်ရပါ** (interface) | — |
 | `PlayerInteractor.cs` | Scene ထဲက GameObject တစ်ခုပေါ် (`Inventory System` ပေါ်မှာ တင်ထားပါတယ်) | Scene တစ်ခုလျှင် **တစ်ခုတည်း** |
 | `ObjectPreviewRenderer.cs` | **ဘယ်မှာမှ မတင်ရပါ** | — |
 | `Editor/PickupSystemMenu.cs` | **ဘယ်မှာမှ မတင်ရပါ** | — |
@@ -70,6 +72,57 @@ Camera က object ကို **+Z ဘက်ကို ကြည့်နေတာ*
 
 ---
 
+## ၂.၅။ `Door.cs` — တံခါးတစ်ချပ်ချင်းစီပေါ်မှာ
+
+E နှိပ်ရင် ဖွင့်/ပိတ်လုပ်ပေးပါတယ်။ **Animation clip မလိုပါဘူး** — code နဲ့ တဖြည်းဖြည်း
+လှည့်ပေးတာမို့ ဘယ် တံခါး mesh မဆို setup မလိုဘဲ အလုပ်လုပ်ပါတယ်။
+
+| Field | ဘာလဲ |
+|---|---|
+| `Display Name` | Prompt မှာ ပြမယ့် နာမည် (`OPEN   DOOR`) |
+| `Open Angle` | ဘယ်လောက် ဟမလဲ (default 95°) |
+| `Open Duration` | ဖွင့်ချိန် စက္ကန့် (default 0.7) |
+| `Hinge Axis` | အထစ်ဝင်ရိုး၊ တံခါးရဲ့ local space (ပုံမှန် Y) |
+| `Facing Axis` | တံခါးမျက်နှာမူရာ။ **သုည ထားရင် mesh ကနေ အလိုအလျောက် တွက်ပါတယ်** |
+| `Open Away From Player` | ကစားသမားဘက်ကို မလှည့်ဘဲ တစ်ဖက်ကို ဟပေးတယ် |
+| `Locked` | ပိတ်ထားရင် `LOCKED` လို့ပဲ ပြပြီး မဖွင့်ပါဘူး |
+| `Open/Close/Locked Sound` | အသံ (မထည့်လည်း ရ) |
+
+### ⚠️ Pivot က အထစ်အနားမှာ ရှိရပါမယ်
+
+တံခါးရဲ့ pivot က **အလယ်မှာ ရှိနေရင် အလယ်ပတ်လည် လှည့်သွား**ပါလိမ့်မယ်။
+
+**ဒါ့အပြင် —** တံခါး (ဒါမှမဟုတ် သူ့ parent) မှာ **scale မညီညာ (non-uniform) ဖြစ်နေရင်
+လှည့်တဲ့အခါ တံခါးက ပုံပျက်သွား**ပါတယ်။ ဒါက Unity ရဲ့ transform စနစ်ရဲ့ သဘောပါ။
+
+နှစ်မျိုးလုံးအတွက် ဖြေရှင်းနည်းက တူပါတယ် — **empty GameObject တစ်ခုကို
+အထစ်နေရာမှာ၊ scale (1,1,1) နဲ့ ထားပြီး တံခါးကို အဲဒီအောက် ထည့်ပါ။
+ပြီးရင် `Door` ကို အဲဒီ empty ပေါ်မှာ တင်ပါ။**
+
+Scene ထဲက Interior door ၄ ချပ်ကို အဲဒီနည်းနဲ့ ပြင်ထားပြီးပါပြီ
+(`Interior_Door_Hinge` စသဖြင့် pivot object တွေ ဆောက်ထားပါတယ်)။
+
+---
+
+## ၂.၇။ `IInteractable.cs` — မတင်ရပါ (interface)
+
+E နှိပ်လို့ရတဲ့ အရာအားလုံးရဲ့ စံပါ။ `Pickup` ရော `Door` ရော ဒါကို implement လုပ်ထားလို့
+`PlayerInteractor` က တစ်ခုတည်းနဲ့ နှစ်မျိုးလုံးကို ကိုင်တွယ်နိုင်တာပါ။
+
+အသစ်တစ်မျိုး (ခလုတ်၊ အံဆွဲ၊ မီးခလုတ်) လုပ်ချင်ရင် ဒါကို implement လုပ်လိုက်ရုံနဲ့
+E နဲ့ အလုပ်လုပ်သွားပါလိမ့်မယ် — `PlayerInteractor` ကို ပြင်စရာ မလိုပါဘူး:
+
+```csharp
+public class Lever : MonoBehaviour, IInteractable
+{
+    public string Prompt      { get { return "PULL   LEVER"; } }
+    public bool   CanInteract { get { return true; } }
+    public string Interact(GameObject interactor) { /* ... */ return null; }
+}
+```
+
+---
+
 ## ၃။ `ObjectPreviewRenderer.cs` — မတင်ရပါ (Pickup က အလိုလိုခေါ်ပါတယ်)
 
 Object ကို **ဓာတ်ပုံရိုက်ပြီး Sprite အဖြစ် ပြောင်းပေးတဲ့** utility ပါ။ `Pickup` က icon လိုတဲ့အခါ ကိုယ်တိုင် ခေါ်သုံးပါတယ်။
@@ -89,6 +142,8 @@ Unity ရဲ့ menu bar မှာ ပေါ်ပါတယ်:
 
 - **`Tools → Pickup System → Make Selected Pickable`**
   ရွေးထားတဲ့ object တွေမှာ `Collider` + `Pickup` ကို ထည့်ပေးပြီး နာမည်ဖြည့်ပေးတယ်။ တစ်ခါတည်း အများကြီး ရွေးလို့ ရပါတယ်
+- **`Tools → Pickup System → Make Selected Doors`**
+  ရွေးထားတဲ့ တံခါးတွေမှာ `Collider` + `Door` ကို ထည့်ပေးတယ်
 - **`Tools → Pickup System → Add Interactor To Scene`**
   `PlayerInteractor` ကို scene ထဲ ထည့်ပေးတယ် (ရှိပြီးသားဆိုရင် အဲဒါကို ညွှန်ပြပေးတယ်)
 

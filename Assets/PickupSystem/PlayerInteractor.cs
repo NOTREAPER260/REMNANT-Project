@@ -3,12 +3,13 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// Looks where the player looks, shows a prompt when a <see cref="Pickup"/> is
-/// in reach, and puts it in the inventory when the interact key is pressed.
+/// Looks where the player looks, shows a prompt when an <see cref="IInteractable"/>
+/// is in reach, and triggers it when the interact key is pressed.
+/// Works for pickups, doors, and anything else implementing the interface.
 /// </summary>
-/// ကင်မရာရှေ့ကို ray တစ်ခုပစ်ပြီး Pickup တွေ့ရင် အောက်မှာ စာပြပါတယ်။
-/// E နှိပ်ရင် inventory ထဲ ရောက်သွားပါမယ်။ GameObject တစ်ခုပေါ်မှာ
-/// တစ်ခုတည်း တင်ထားရုံနဲ့ ရပါပြီ — camera ကို အလိုအလျောက် ရှာပါတယ်။
+/// ကင်မရာရှေ့ကို ray တစ်ခုပစ်ပြီး E နှိပ်လို့ရတဲ့အရာ တွေ့ရင် အောက်မှာ စာပြပါတယ်။
+/// ပစ္စည်းကောက်တာရော တံခါးဖွင့်တာရော ဒီတစ်ခုတည်းနဲ့ ကိုင်တွယ်ပါတယ်။
+/// GameObject တစ်ခုပေါ်မှာ တစ်ခုတည်း တင်ထားရုံနဲ့ ရပါပြီ — camera ကို အလိုအလျောက် ရှာပါတယ်။
 [DisallowMultipleComponent]
 public class PlayerInteractor : MonoBehaviour
 {
@@ -32,13 +33,19 @@ public class PlayerInteractor : MonoBehaviour
     private const int MaxHits = 16;
 
     private readonly RaycastHit[] _hits = new RaycastHit[MaxHits];
-    private Pickup _target;
+    private IInteractable _target;
     private Transform _ignoreRoot;
 
     private GameObject _promptRoot;
     private Text _promptText;
     private Image _crosshair;
     private float _messageUntil;
+
+    /// <summary>The inventory this player carries. Pickups read it through here.</summary>
+    public HorrorInventory Inventory
+    {
+        get { return inventory; }
+    }
 
     // ---------------------------------------------------------------- setup
 
@@ -117,7 +124,12 @@ public class PlayerInteractor : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         if (_target != null && keyboard != null && keyboard[interactKey].wasPressedThisFrame)
         {
-            Collect(_target);
+            string message = _target.Interact(gameObject);
+            if (!string.IsNullOrEmpty(message))
+            {
+                Flash(message);
+            }
+            return;
         }
 
         if (Time.time < _messageUntil)
@@ -128,7 +140,7 @@ public class PlayerInteractor : MonoBehaviour
         if (_target != null)
         {
             Show("[ " + interactKey.ToString().ToUpperInvariant() + " ]   "
-                 + InventoryUI.Track(_target.ItemName), true);
+                 + InventoryUI.Track(_target.Prompt), true);
         }
         else
         {
@@ -161,17 +173,17 @@ public class PlayerInteractor : MonoBehaviour
     }
 
     /// <summary>
-    /// Nearest pickup the player can actually see. Anything solid in the way
-    /// blocks it, so items cannot be grabbed through walls.
+    /// Nearest interactable the player can actually see. Anything solid in the way
+    /// blocks it, so doors cannot be opened and items cannot be grabbed through walls.
     /// </summary>
-    /// အနီးဆုံး Pickup ကို ရှာတာပါ။ ကြားထဲမှာ နံရံခံနေရင် မကောက်ရပါဘူး။
-    private Pickup FindTarget()
+    /// အနီးဆုံး E နှိပ်လို့ရတဲ့အရာကို ရှာတာပါ။ ကြားထဲမှာ နံရံခံနေရင် မရပါဘူး။
+    private IInteractable FindTarget()
     {
         Ray ray = new Ray(eyes.transform.position, eyes.transform.forward);
 
         int count = Physics.RaycastNonAlloc(ray, _hits, reach, blockingLayers,
             QueryTriggerInteraction.Ignore);
-        Pickup direct = NearestPickup(count, true);
+        IInteractable direct = NearestInteractable(count, true);
         if (direct != null)
         {
             return direct;
@@ -185,14 +197,14 @@ public class PlayerInteractor : MonoBehaviour
         // Thin ray missed - sweep a small sphere so near-misses still count.
         count = Physics.SphereCastNonAlloc(ray, aimAssistRadius, _hits, reach, blockingLayers,
             QueryTriggerInteraction.Ignore);
-        return NearestPickup(count, false);
+        return NearestInteractable(count, false);
     }
 
     /// <param name="stopAtBlocker">
-    /// True for the precise ray: the first solid thing that is not a pickup hides
-    /// whatever is behind it. False for aim assist, which only looks for pickups.
+    /// True for the precise ray: the first solid thing that is not interactable hides
+    /// whatever is behind it. False for aim assist, which only looks for interactables.
     /// </param>
-    private Pickup NearestPickup(int count, bool stopAtBlocker)
+    private IInteractable NearestInteractable(int count, bool stopAtBlocker)
     {
         int remaining = count;
         float lastDistance = -1f;
@@ -233,10 +245,10 @@ public class PlayerInteractor : MonoBehaviour
                 continue;
             }
 
-            Pickup pickup = collider.GetComponentInParent<Pickup>();
-            if (pickup != null)
+            IInteractable interactable = collider.GetComponentInParent<IInteractable>();
+            if (interactable != null && interactable.CanInteract)
             {
-                return pickup;
+                return interactable;
             }
 
             if (stopAtBlocker)
@@ -246,29 +258,6 @@ public class PlayerInteractor : MonoBehaviour
         }
 
         return null;
-    }
-
-    private void Collect(Pickup pickup)
-    {
-        if (inventory == null)
-        {
-            Flash("NO INVENTORY IN SCENE");
-            return;
-        }
-
-        // Photograph the object before it leaves the world.
-        InventoryItem item = pickup.CreateItem();
-
-        if (inventory.TryAddItem(item))
-        {
-            Flash(InventoryUI.Track(pickup.ItemName) + "   ACQUIRED");
-            pickup.OnPickedUp();
-            _target = null;
-        }
-        else
-        {
-            Flash("INVENTORY FULL");
-        }
     }
 
     private void Flash(string message)

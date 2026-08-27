@@ -13,7 +13,7 @@ using UnityEngine;
 ///   2. Item Name / Description ဖြည့် (နာမည်က object နာမည်အတိုင်း အလိုလိုဝင်ပါတယ်)
 ///   3. Icon Rotation နဲ့ ပုံရဲ့ ထောင့်ကို ချိန်လို့ရပါတယ်
 [DisallowMultipleComponent]
-public class Pickup : MonoBehaviour
+public class Pickup : MonoBehaviour, IInteractable
 {
     [Header("Item")]
     [Tooltip("Shown in the inventory slot. Keep it English - uGUI cannot shape Burmese.")]
@@ -43,6 +43,52 @@ public class Pickup : MonoBehaviour
     public string Description
     {
         get { return description; }
+    }
+
+
+    // --- IInteractable ---------------------------------------------------
+
+    public string Prompt { get { return "PICK UP   " + ItemName; } }
+
+    public bool CanInteract { get { return true; } }
+
+    /// <summary>Take the item, using the inventory the interactor is wired to.</summary>
+    /// ကောက်ယူတာပါ။ Inventory ကို PlayerInteractor ဆီကနေ ယူသုံးလို့
+    /// Pickup တစ်ခုချင်းစီမှာ ချိတ်ပေးစရာ မလိုပါဘူး။
+    public string Interact(GameObject interactor)
+    {
+        HorrorInventory inventory = null;
+
+        if (interactor != null)
+        {
+            PlayerInteractor player = interactor.GetComponentInParent<PlayerInteractor>();
+            if (player != null)
+            {
+                inventory = player.Inventory;
+            }
+        }
+
+        if (inventory == null)
+        {
+            inventory = Object.FindFirstObjectByType<HorrorInventory>();
+        }
+
+        if (inventory == null)
+        {
+            return "NO INVENTORY IN SCENE";
+        }
+
+        // Photograph the object before it leaves the world.
+        InventoryItem item = CreateItem();
+
+        if (!inventory.TryAddItem(item))
+        {
+            return "INVENTORY FULL";
+        }
+
+        string name = ItemName;
+        OnPickedUp();
+        return name + "   ACQUIRED";
     }
 
     /// Called by Unity the first time the component is added, and on "Reset".
