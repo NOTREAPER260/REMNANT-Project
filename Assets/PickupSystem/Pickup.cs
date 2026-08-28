@@ -29,11 +29,29 @@ public class Pickup : MonoBehaviour, IInteractable
     [Tooltip("Empty margin around the object. 1 = tight crop.")]
     [SerializeField, Range(1f, 2f)] private float iconPadding = 1.18f;
 
+    [Header("Held In Hand")]
+    [Tooltip("Already in the player's hand at the start. It goes straight into the " +
+             "inventory, stays visible, and returns to the hand when picked up again.")]
+    [SerializeField] private bool heldInHand;
+
+
     [Header("On Pickup")]
     [SerializeField] private AudioClip pickupSound;
     [SerializeField, Range(0f, 1f)] private float pickupVolume = 0.7f;
 
     private Sprite _cachedIcon;
+
+    // Where a hand-held object lives when carried, so it can go back there.
+    private Transform _homeParent;
+    private Vector3 _homeLocalPosition;
+    private Quaternion _homeLocalRotation;
+    private bool _homeRecorded;
+
+    /// လက်ထဲမှာ ကိုင်ထားတဲ့ ပစ္စည်းလား။
+    public bool HeldInHand
+    {
+        get { return heldInHand; }
+    }
 
     public string ItemName
     {
@@ -93,6 +111,50 @@ public class Pickup : MonoBehaviour, IInteractable
 
     /// Called by Unity the first time the component is added, and on "Reset".
     /// Component ထည့်လိုက်တာနဲ့ Unity က ဒါကို ခေါ်ပေးလို့ အလိုအလျောက် ပြင်ဆင်ပေးပါတယ်။
+    private void Awake()
+    {
+        RecordHome();
+
+        // A tool riding on the camera must not shove the player around, and it
+        // must not sit in front of the aim ray either.
+        if (heldInHand)
+        {
+            SetCollidersEnabled(false);
+        }
+    }
+
+    /// <summary>
+    /// The aim ray can only find this object while its colliders are on, so they
+    /// follow the object: off in the hand, on once it is lying in the world.
+    /// </summary>
+    /// လက်ထဲမှာ ကိုင်ထားစဉ် collider ပိတ်၊ မြေပြင်ပေါ် ချလိုက်ရင် ဖွင့်ပေးတာပါ။
+    /// မဖွင့်ရင် E ရဲ့ ray က ထိစရာမရှိလို့ ဘယ်တော့မှ ပြန်ကောက်လို့ ရမှာ မဟုတ်ပါဘူး။
+    private void SetCollidersEnabled(bool value)
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = value;
+        }
+    }
+
+    /// <summary>Remember the hand pose before anything moves the object.</summary>
+    private void RecordHome()
+    {
+        if (_homeRecorded)
+        {
+            return;
+        }
+
+        _homeParent = transform.parent;
+        _homeLocalPosition = transform.localPosition;
+        _homeLocalRotation = transform.localRotation;
+        _homeRecorded = true;
+    }
+
+
+    /// Called by Unity the first time the component is added, and on "Reset".
+    /// Component ထည့်လိုက်တာနဲ့ Unity က ဒါကို ခေါ်ပေးလို့ အလိုအလျောက် ပြင်ဆင်ပေးပါတယ်။
     private void Reset()
     {
         itemName = name.ToUpperInvariant();
@@ -121,7 +183,7 @@ public class Pickup : MonoBehaviour, IInteractable
             icon = _cachedIcon;
         }
 
-        InventoryItem item = new InventoryItem(ItemName, description, icon, false);
+        InventoryItem item = new InventoryItem(ItemName, description, icon, heldInHand);
 
         // Picked-up objects are hidden, never destroyed, so every one of them
         // can always be dropped again.
@@ -139,6 +201,20 @@ public class Pickup : MonoBehaviour, IInteractable
             AudioSource.PlayClipAtPoint(pickupSound, transform.position, pickupVolume);
         }
 
+        RecordHome();
+
+        if (heldInHand && _homeParent != null)
+        {
+            // A carried tool goes back to the hand and stays visible. The aim ray
+            // ignores it because it is a child of the player.
+            transform.SetParent(_homeParent, false);
+            transform.localPosition = _homeLocalPosition;
+            transform.localRotation = _homeLocalRotation;
+            SetCollidersEnabled(false);
+            gameObject.SetActive(true);
+            return;
+        }
+
         gameObject.SetActive(false);
     }
 
@@ -150,8 +226,13 @@ public class Pickup : MonoBehaviour, IInteractable
     /// ကောက်ခင်က အရှိန်အဟုန်တွေ ကျန်မနေတော့ပါဘူး။
     public void Restore(Vector3 position, Quaternion rotation)
     {
+        RecordHome();
+
+        // Detach first, or a dropped item would still ride along with the camera.
+        transform.SetParent(null, true);
         transform.SetPositionAndRotation(position, rotation);
         gameObject.SetActive(true);
+        SetCollidersEnabled(true);
 
         Rigidbody body = GetComponent<Rigidbody>();
         if (body != null)

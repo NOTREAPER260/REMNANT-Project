@@ -116,6 +116,7 @@ public class HorrorInventory : MonoBehaviour
         }
 
         AddStartingFlashlight();
+        AddHandHeldPickups();
         RefreshSlots();
     }
 
@@ -148,6 +149,32 @@ public class HorrorInventory : MonoBehaviour
         _items[0] = flashlight;
         _flashlightSlot = 0;
         _lastBeamOn = flashlightLight != null && flashlightLight.enabled;
+    }
+
+/// <summary>
+    /// Anything already in the player's hand (a crowbar, a tool) gets a slot at
+    /// start. Unlike the flashlight these are real world objects, so they can be
+    /// dropped with the drop key and picked back up again.
+    /// </summary>
+    /// လက်ထဲမှာ ကိုင်ထားပြီးသား ပစ္စည်းတွေကို စတင်ချိန်မှာ slot ထဲ ထည့်ပေးတာပါ။
+    /// ဓာတ်မီးနဲ့ မတူတာက ဒါတွေက တကယ့် object တွေမို့ ချလို့ရ၊ ပြန်ကောက်လို့ရပါတယ်။
+    private void AddHandHeldPickups()
+    {
+        Pickup[] pickups = Object.FindObjectsByType<Pickup>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+        for (int i = 0; i < pickups.Length; i++)
+        {
+            if (!pickups[i].HeldInHand)
+            {
+                continue;
+            }
+
+            if (!TryAddItem(pickups[i].CreateItem()))
+            {
+                Debug.LogWarning("[Inventory] No room for '" + pickups[i].ItemName + "'.", pickups[i]);
+            }
+        }
     }
 
     private void EnsureEventSystem()
