@@ -44,14 +44,12 @@ namespace StarterAssets
 			SprintInput(value.isPressed);
 		}
 #endif
-
-
-		public void MoveInput(Vector2 newMoveDirection)
-		{
-			move = newMoveDirection;
-		} 
-
-		public void LookInput(Vector2 newLookDirection)
+        public void MoveInput(Vector2 newMoveDirection)
+        {
+            Debug.Log("MOVE RECEIVED: " + newMoveDirection);
+            move = newMoveDirection;
+        }
+        public void LookInput(Vector2 newLookDirection)
 		{
 			look = newLookDirection;
 		}
