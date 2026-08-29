@@ -115,10 +115,7 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
-            Debug.Log("Input: " + _input.move);
-            Debug.Log("Speed: " + _speed);
-            Debug.Log("Velocity: " + _controller.velocity);
-        }
+		}
 
 		private void LateUpdate()
 		{
@@ -156,7 +153,6 @@ namespace StarterAssets
 
         private void Move()
         {
-            Debug.Log("MOVE AT START: " + _input.move);
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
             if (_input.move == Vector2.zero)
@@ -171,10 +167,6 @@ namespace StarterAssets
             Vector3 inputDirection =
                 transform.right * _input.move.x +
                 transform.forward * _input.move.y;
-
-            Debug.Log("INPUT: " + _input.move);
-            Debug.Log("DIRECTION: " + inputDirection);
-            Debug.Log("SPEED: " + _speed);
 
             _controller.Move(
                 inputDirection.normalized * (_speed * Time.deltaTime) +

@@ -292,11 +292,14 @@ public static class ObjectPreviewRenderer
     }
 
     /// <summary>
-    /// Turn every live scene light off for the duration of the capture, so the
+    /// Turn off the lights that could actually reach the preview stage, so the
     /// icon looks the same no matter where in the level it was picked up.
     /// </summary>
-    /// Scene ထဲက မီးအားလုံးကို ခဏပိတ်ထားတာပါ။ ဒါမှ ဘယ်နေရာမှာ ကောက်ကောက်
-    /// icon က တစ်ပုံစံတည်း ထွက်မှာပါ။ Render ပြီးတာနဲ့ ချက်ချင်း ပြန်ဖွင့်ပေးပါတယ်။
+    /// Preview stage (Y = -9000) ကို တကယ်ရောက်နိုင်တဲ့ မီးတွေချည်းသာ ခဏပိတ်ထားတာပါ။
+    /// Point/Spot Light တွေက Range ပြတ်ထားလို့ အဲဒီအလှမ်းကို လုံးဝမရောက်နိုင်ပါဘူး —
+    /// Directional Light ချည်းသာ (Range မရှိလို့) ရောက်နိုင်တာမို့ ဒါကိုပဲ ပိတ်ရပါတယ်။
+    /// အရင်က မီးအားလုံး (Player ဓာတ်မီးအပါအဝင်) ကို ပိတ်ထားခဲ့လို့ ပစ္စည်းတစ်ခုခု ကောက်တိုင်း
+    /// ဓာတ်မီးက တခဏပျောက်သွားတဲ့ bug ဖြစ်ခဲ့ပါတယ်။
     private static List<Light> SilenceSceneLights()
     {
         List<Light> silenced = new List<Light>();
@@ -304,7 +307,7 @@ public static class ObjectPreviewRenderer
 
         for (int i = 0; i < lights.Length; i++)
         {
-            if (lights[i] != null && lights[i].enabled)
+            if (lights[i] != null && lights[i].enabled && lights[i].type == LightType.Directional)
             {
                 lights[i].enabled = false;
                 silenced.Add(lights[i]);
