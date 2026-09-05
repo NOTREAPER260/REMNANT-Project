@@ -35,6 +35,8 @@ public class HorrorInventory : MonoBehaviour
     [SerializeField] private Key toggleKey = Key.Tab;
     [Tooltip("Drops the selected item back into the world.")]
     [SerializeField] private Key dropKey = Key.G;
+    [Tooltip("Runs the selected item's OnUse action, e.g. opening the book.")]
+    [SerializeField] private Key useKey = Key.Enter;
     [SerializeField] private bool closeOnEscape = true;
 
     [Header("Dropping")]
@@ -351,7 +353,11 @@ public class HorrorInventory : MonoBehaviour
         {
             if (keyboard[toggleKey].wasPressedThisFrame)
             {
-                Toggle();
+                // A full-screen reader (paper note / book) already owns the screen.
+                if (!ReaderLock.IsAnyOpen)
+                {
+                    Toggle();
+                }
             }
             else if (_open && closeOnEscape && keyboard.escapeKey.wasPressedThisFrame)
             {
@@ -360,6 +366,10 @@ public class HorrorInventory : MonoBehaviour
             else if (_open && keyboard[dropKey].wasPressedThisFrame)
             {
                 DropItem(_hovered >= 0 ? _hovered : _selected);
+            }
+            else if (_open && keyboard[useKey].wasPressedThisFrame)
+            {
+                UseSelected();
             }
         }
 
@@ -575,6 +585,23 @@ public class HorrorInventory : MonoBehaviour
         return true;
     }
 
+    /// <summary>Run the selected/hovered item's OnUse action, if it has one.</summary>
+    /// ရွေးထား/ထောက်ထားတဲ့ item ရဲ့ OnUse ရှိရင် ခေါ်ပေးတာပါ - book အတွက် "ဖွင့်ဖတ်ရန်".
+    private void UseSelected()
+    {
+        int index = _hovered >= 0 ? _hovered : _selected;
+        if (index < 0 || index >= _items.Length || _items[index] == null)
+        {
+            return;
+        }
+
+        InventoryItem item = _items[index];
+        if (item.OnUse != null)
+        {
+            item.OnUse();
+        }
+    }
+
     /// <summary>
     /// A clear spot ahead of the camera: stop short of any wall, then settle
     /// onto the ground so the item never lands inside geometry or in mid-air.
@@ -718,6 +745,11 @@ public class HorrorInventory : MonoBehaviour
         if (index == _flashlightSlot && flashlightLight != null)
         {
             body += flashlightLight.enabled ? "\nBEAM: ON" : "\nBEAM: OFF";
+        }
+
+        if (item.OnUse != null)
+        {
+            body += "\n[ " + useKey.ToString().ToUpperInvariant() + " ]  read";
         }
 
         // Only advertise the key on things that can actually be put down.

@@ -162,4 +162,59 @@ public static class PickupSystemMenu
         return Selection.gameObjects.Length > 0;
     }
 
+    [MenuItem("Tools/Pickup System/Make Selected Readable Paper", false, 40)]
+    private static void MakeSelectedReadablePaper()
+    {
+        GameObject[] selection = Selection.gameObjects;
+        int changed = 0;
+
+        Undo.IncrementCurrentGroup();
+        Undo.SetCurrentGroupName("Make Readable Paper");
+
+        for (int i = 0; i < selection.Length; i++)
+        {
+            GameObject go = selection[i];
+
+            if (go.GetComponentInChildren<Renderer>() == null)
+            {
+                Debug.LogWarning("[Pickup System] '" + go.name +
+                                 "' has no Renderer, so it cannot be read. Skipped.", go);
+                continue;
+            }
+
+            // Imported meshes keep their geometry on a child transform, so the
+            // collider needs fitting - see ReadablePaper.FitBoxCollider.
+            if (go.GetComponentInChildren<Collider>() == null)
+            {
+                ReadablePaper.FitBoxCollider(go, Undo.AddComponent<BoxCollider>(go));
+            }
+
+            if (go.GetComponent<ReadablePaper>() == null)
+            {
+                ReadablePaper paper = Undo.AddComponent<ReadablePaper>(go);
+
+                // Reset() is not guaranteed to run for a scripted AddComponent.
+                SerializedObject so = new SerializedObject(paper);
+                so.FindProperty("pageTitle").stringValue = go.name.ToUpperInvariant();
+                so.ApplyModifiedProperties();
+            }
+
+            changed++;
+        }
+
+        Undo.CollapseUndoOperations(Undo.GetCurrentGroup());
+
+        if (changed > 0)
+        {
+            Debug.Log("[Pickup System] " + changed + " object(s) are now readable pages. " +
+                      "Write the Page Text on each, then save the scene.");
+        }
+    }
+
+    [MenuItem("Tools/Pickup System/Make Selected Readable Paper", true)]
+    private static bool MakeSelectedReadablePaperValidate()
+    {
+        return Selection.gameObjects.Length > 0;
+    }
+
 }

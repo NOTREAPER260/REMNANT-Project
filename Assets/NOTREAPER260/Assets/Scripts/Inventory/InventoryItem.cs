@@ -16,6 +16,7 @@ public class InventoryItem
     private Sprite _icon;
     private GameObject _worldObject;
     private bool _droppable;
+    private System.Action _onUse;
 
     public InventoryItem(string displayName, string description, Sprite icon, bool equipped)
     {
@@ -68,5 +69,12 @@ public class InventoryItem
     {
         get { return _icon; }
         set { _icon = value; }
+    }
+
+    /// ရွေးထားစဉ် Use key နှိပ်ရင် ခေါ်မယ့် callback. null ဆိုရင် hint လုံးဝ မပြပါ.
+    public System.Action OnUse
+    {
+        get { return _onUse; }
+        set { _onUse = value; }
     }
 }

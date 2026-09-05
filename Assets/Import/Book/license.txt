@@ -1,0 +1,11 @@
+Model Information:
+* title:	Ornate Book
+* source:	https://sketchfab.com/3d-models/ornate-book-f55f8ffd11ef48629962d0f178039849
+* author:	N8 (https://sketchfab.com/nathanmlange)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Ornate Book" (https://sketchfab.com/3d-models/ornate-book-f55f8ffd11ef48629962d0f178039849) by N8 (https://sketchfab.com/nathanmlange) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
