@@ -1,0 +1,11 @@
+Model Information:
+* title:	Mobile phone
+* source:	https://sketchfab.com/3d-models/mobile-phone-4a97a633ad584ba19110e1730f7744c1
+* author:	Alain Sorazu (https://sketchfab.com/alainsorazu)
+
+Model License:
+* license type:	CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
+* requirements:	Author must be credited. Modified versions must have the same license. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Mobile phone" (https://sketchfab.com/3d-models/mobile-phone-4a97a633ad584ba19110e1730f7744c1) by Alain Sorazu (https://sketchfab.com/alainsorazu) licensed under CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)

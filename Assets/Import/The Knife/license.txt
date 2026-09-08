@@ -1,0 +1,11 @@
+Model Information:
+* title:	Blood-knife
+* source:	https://sketchfab.com/3d-models/blood-knife-ff40f3189fab4be2afc4f221ed367c67
+* author:	Flash (https://sketchfab.com/pimenovvlad354)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Blood-knife" (https://sketchfab.com/3d-models/blood-knife-ff40f3189fab4be2afc4f221ed367c67) by Flash (https://sketchfab.com/pimenovvlad354) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

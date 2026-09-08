@@ -1,0 +1,11 @@
+Model Information:
+* title:	Medicine bottle
+* source:	https://sketchfab.com/3d-models/medicine-bottle-44701958387b4a9f8ec76d125473c567
+* author:	moatazbahaa.mb (https://sketchfab.com/moatazbahaa.mb)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Medicine bottle" (https://sketchfab.com/3d-models/medicine-bottle-44701958387b4a9f8ec76d125473c567) by moatazbahaa.mb (https://sketchfab.com/moatazbahaa.mb) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
